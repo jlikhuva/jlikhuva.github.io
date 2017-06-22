@@ -1,20 +1,3 @@
-extends partial/layout
-
-block site_title
-    != page.title + " · " + config.title
-
-block description
-    - var desc = page.desc || page.title + ' - ' + config.author;
-    meta(name="description", content=desc)
-
-block container
-    include mixins/post
-    +post(page)
-
-block pagination
-    include mixins/paginator
-    +post()
-    include partial/comment
-
-block copyright
-    include partial/copyright
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>Creating a Dataset · Kleinhaus.</title><meta name="description" content="Creating a Dataset - Joseph L. O."><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/gandalfr.css"><link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/solarized-light.css"><link rel="search" type="application/opensearchdescription+xml" href="http://yoursite.com/atom.xml" title="Kleinhaus."></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="https://avatars1.githubusercontent.com/u/3142935?v=3&amp;s=466 or file" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">STACKOVERFLOW</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">Creating a Dataset</h1><div class="tags"><a href="/tags/web-scraping/" class="tag-title">#web scraping</a><a href="/tags/bs4/" class="tag-title">#bs4</a></div><div class="post-info">Jun 18, 2017</div><div class="post-content"><h6 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h6><p>Intelligent platforms are those that are able to adapt as they are exposed to data. In fact, data is the foundation on which modern A.I breakthroughs are build. Data has to come from somewhere. For most applications, it is obtained by logging events generated when humans interact with the application. Sometimes, however, we may desire to build models with data that is already available but isn’t structured. For instance, we may wish to </p>
+<h6 id="web-scraping"><a href="#web-scraping" class="headerlink" title="web scraping"></a>web scraping</h6><p>This means exactly what it sounds like – we scrape data from web pages. In this, maiden, blogpost I walk through the process of creating a structured dataset from unstructured data available in web pages. To ground my discussion, I’ll be creating a .csv file of all Oscar (Actor/Actress) nominess since 1927. We’ll use data from the IMDB.  </p>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/06/17/hello-world/" class="next">NEXT</a></div><div class="copyright"><p>© 2017 <a href="http://yoursite.com">Joseph L. O.</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/MikeCoder/hexo-theme-gandalfr" target="_blank">hexo-theme-gandalfr</a>.</p></div></footer></div><script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" crossorigin="anonymous"></script><script src="//cdn.bootcss.com/jquery/3.1.1/jquery.js" crossorigin="anonymous"></script><script>$(document).ready(function() { $('pre').each(function(i, block) { hljs.highlightBlock(block); }); });</script></body></html>
