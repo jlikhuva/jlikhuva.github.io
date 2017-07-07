@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2017-07-07T03:55:47.000Z</updated>
+  <updated>2017-07-07T03:58:04.000Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -19,8 +19,8 @@
     <title>Data Science Toolkit: Jupyter Notebooks</title>
     <link href="http://yoursite.com/2017/06/24/Data-Science-Toolkit-Jupyter-Notebooks/"/>
     <id>http://yoursite.com/2017/06/24/Data-Science-Toolkit-Jupyter-Notebooks/</id>
-    <published>2017-06-24T14:15:55.000Z</published>
-    <updated>2017-07-07T03:55:47.000Z</updated>
+    <published>2017-06-24T14:15:00.000Z</published>
+    <updated>2017-07-07T03:58:04.000Z</updated>
     
     <content type="html"><![CDATA[<p>The Ability to rapidly prototype and test out new ideas often determines whether or not any project will eventually be successful. This is even more true in Data Centric Software Development. Therefore, as an engineer, it’s important to have tools that encourage and enable your ability to quickly move through the <code>prototype - test - re-prototype</code> feedback loop. Jupyter Notebooks is one such tool.<br><!--break--></p>
 <h6 id="What"><a href="#What" class="headerlink" title="What"></a>What</h6><p>Jupyter Notebooks is a browser based development environment that grew out of the IPython project. It was developed with numerical programming in mind; It mainly supports Julia, Python and R. In this blogpost, I walk through how to locally install and customize it.</p>
@@ -45,6 +45,10 @@
     
     </summary>
     
+    
+      <category term="Data Science Toolkit" scheme="http://yoursite.com/tags/Data-Science-Toolkit/"/>
+    
+      <category term="Jupyter" scheme="http://yoursite.com/tags/Jupyter/"/>
     
   </entry>
   
