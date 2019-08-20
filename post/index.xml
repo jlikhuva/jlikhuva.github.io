@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Kleinhaus</title>
-    <link>/post/</link>
+    <link>jlikhuva.github.io/post/</link>
     <description>Recent content in Posts on Kleinhaus</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 19 Aug 2019 16:02:07 -0400</lastBuildDate>
     
-	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="jlikhuva.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Good Morning ...</title>
-      <link>/post/intro/</link>
+      <link>jlikhuva.github.io/post/intro/</link>
       <pubDate>Mon, 19 Aug 2019 16:02:07 -0400</pubDate>
       
-      <guid>/post/intro/</guid>
+      <guid>jlikhuva.github.io/post/intro/</guid>
       <description>Hello there; thank you for stopping by. In this post, I intend to answer the question, &amp;ldquo;What is this, and why does it exist?&amp;rdquo;
 I&amp;rsquo;m setting up this blog as a space for me to &amp;ldquo;learn in public&amp;rdquo;. I intend for it to serve as a quasi-journal into which I distill the different things that I&amp;rsquo;ll be learning, working on, and thinkig about. I expect the focus of the posts to be on two main areas: Programming and product.</description>
     </item>
