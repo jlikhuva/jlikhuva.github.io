@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="jlikhuva">
+  <meta name="generator" content="Hugo 0.56.3" />
+  <title>CPU Virtualization I: Isolation &amp; Control — Kleinhaus</title>
+
+  <meta name="description" content="">
+  <link rel="canonical" href="https://jlikhuva.github.io/post/cpu_virt1/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Kleinhaus">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Arvo:400,700">
+  <link rel="stylesheet" href="https://jlikhuva.github.io/css/highlight.css">
+  <link rel="stylesheet" href="https://jlikhuva.github.io/css/paperback.css">
+</head>
+
+
+  <body>
+    <div class="container">
+
+      <header>
+  <h1>CPU Virtualization I: Isolation &amp; Control</h1>
+
+  
+  <time datetime="2019-08-27 19:55:44 -0400 EDT">2019/08/27</time>
+  
+
+  
+</header>
+
+
+      <article>
+        
+
+<h5 id="introduction">Introduction</h5>
+
+<p>In this post, we introduce resource virtualization and explore how the
+operating system uses this idea to give programs fair
+and efficient access to one of computing&rsquo;s main resource: the CPU.
+In future posts, we&rsquo;ll examine how virtualization works with other resources
+such as RAM and Persistent Storage.</p>
+
+<p>This post is derived from the notes I made while reading
+<a href="http://pages.cs.wisc.edu/~remzi/OSTEP/">the best OS book on the internet</a>.</p>
+
+<h5 id="what-is-resource-virtualization">What is Resource Virtualization?</h5>
+
+<p>Virtualization refers to the separation of
+the abstract view of computing resources (compute, storage, memory)
+from the underlying implementations.
+A virtualization layer provides clients of the underlying resources a simple,
+unified interface through which they can access the resources they need while
+hiding the resources&rsquo; implementation details.</p>
+
+<h5 id="cpu-virtualization">CPU Virtualization.</h5>
+
+<p>The OS virtualizes the CPU in order to <code>Concurrently</code> run multiple user programs
+on the same CPU while maintaining <code>Isolation</code> between and <code>Control</code>
+over the programs. Concurrent execution allows programs to efficiently
+share the CPU. Because of the isolation guarantee, programs never have
+to worry about the other programs with which they share the CPU.
+Finally, control ensures that user programs cannot execute commands that may jeopardize the entire system.</p>
+
+<p>In order to effieciently virtualize the cpu, the OS
+in conjunction with the hardware (the processor) uses
+a number of mechaninisms summarized below:</p>
+
+<ol>
+<li>To maintain isolation between programs,
+the OS abstracts each running program as  a <code>Process</code>.</li>
+<li>To maintain control without compromising
+efficiency, the OS employs <code>Limited Direct Execution</code>: Allowing the programs&rsquo;
+instructions to run directly on the CPU unsupervised unless the
+program tries to execute restricted instructions.</li>
+
+<li><p>To concurrently run multiple programs,
+the OS implements <code>scheduling</code> procedures that attempt to
+ensure that all programs get a fair chance to make progress.</p>
+
+<pre><code class="language-javascript">const cpu_virtualization =  (
+    PROCESSES + // Isolation
+    CPU_TIME_SHARING + // Run Multiple programs
+    LIMITED_DIRECT_EXECUTION + // Eficient Control
+)                        
+</code></pre></li>
+</ol>
+
+<h5 id="1-processes">1. Processes</h5>
+
+<p>A process is the OS&rsquo;s abstraction of a running program.
+It is a Struct that encapsulates all the important
+information the OS needs to &lsquo;run&rsquo; the program.
+This includes the program&rsquo;s assembly code along
+with static data, the values it has stored in
+registers ( e.g the program counter aka the PC),
+lists of resources the program is holding (e.g the list of open files), etc</p>
+
+<p>To run a program, the OS first creates a new process and
+initializes its address space (covered in a later post), loads its code
+and static data from disk into that address space,
+then allocates memory for the program&rsquo;s stack
+and heap. The stack is initialized with initial variables i.e <code>argc</code> and <code>argv</code>.
+Additionally, the OS initializes the list of open
+file descriptors with <code>stdin</code>, <code>stdout</code> and <code>stderr</code>.
+To start the program, the os puts the address of <code>main</code>
+in the PC register then executes a command that transfers control to
+the processor which starts executing the program&rsquo;s instructions.</p>
+
+<p>Processes can be in one of several states: Running, Ready or Blocked, etc.</p>
+
+<p><img src="http://www.github.com/jlikhuva/jlikhuva.github.io/tree/master/img/states.jpg" alt="Process States" /></p>
+
+<p>On Unix systems, one creates a process
+using the <code>fork</code> system call. <code>exec</code>/<code>execvp</code> are used to
+start a program in a given process context, <code>kill</code> is used
+to send arbitrary signals to the process and <code>wait</code> is used
+to wait for another process to terminate.</p>
+
+<h5 id="2-limited-direct-execution">2. Limited Direct Execution</h5>
+
+<p>In order to ensure that processes run as fast as possible, the OS lets them execute their instructions <code>directly</code>
+on the CPU. Doing so, however, means that the when the program is executing, the OS isn&rsquo;t running and thus can&rsquo;t
+&lsquo;supervise&rsquo; the program. This is bad for <code>Control</code> - the OS can&rsquo;t guarantee that programs won&rsquo;t execute instructions
+that could potentially jeopardize the system. To remedy this, the OS relies on the processor.
+The processor runs in two modes: <code>user mode</code> and <code>kernel mode</code>. Normal Programs run  in user mode. In this mode, programs can only execute a <code>limited set</code> of non-privileged instructions. The OS, on the other hand, runs in kernel mode and is able to execute all types of instructions. When a normal program wishes to execute a restricted instruction –like opening a file,it has to go through the OS by using a system call.</p>
+
+<p>To execute a System Call:</p>
+
+<ol>
+<li>The program executes a special instruction
+(<code>INT</code> on x86) that changes the processor mode to kernel
+mode, stops the user program, saves the calling program&rsquo;s
+registers (on the kernel stack) and transfers
+control of the cpu to the OS.</li>
+<li>Once the OS is running, it can execute the restricted instruction
+on behalf of the initiating user program. When its done, it executes another
+special instruction (<code>IRET</code>) that makes the processor switch back to user mode, restore the user
+program registers from the kernel stack and resume executing the user program.</li>
+</ol>
+
+<p>At boot time, the OS initializes a <code>trap table</code>. This is a list of kernel space memory addresses that the processor uses in order to know where in the cpu to jump to when a given syscall is made.</p>
+
+<p>As an aside, here is a set of definitions, from <a href="http://cc.etsii.ull.es/ftp/antiguo/asignas/asignas/EC/AOA/CH17/Ch17.pdf">here</a>,  that I found quite helpful.</p>
+
+<pre><code class="language-python">    Trap = &quot;A Programmer initiated an expected 
+            transfer of CPU control to a 
+            specific handler routine&quot;
+    Exception = &quot;An automatically generated Trap. It
+                is unexpected by the programmer and
+                results from some exceptional condition
+                such as an illegal memory access&quot;
+    Interrupts = &quot;Program control interruption based 
+                on hardware events external to the cpu
+                such as keyboard entries&quot;
+</code></pre>
+
+<h5 id="outro">Outro</h5>
+
+<p>This post covered the first two aspects of
+cpu-virtualization: Processes and LDE.
+In the next post, we&rsquo;ll explore how the OS and the
+Processor work together to implement CPU time sharing.</p>
+
+      </article>
+
+      <nav class="site-nav">
+  <a href="https://jlikhuva.github.io/">Home</a>
+  <a href="https://jlikhuva.github.io/post/">All posts</a>
+
+  
+
+  
+  <a href="https://github.com/jlikhuva">GitHub</a>
+
+  
+  <a href="https://www.linkedin.com/in/jlikhuva">LinkedIn</a>
+</nav>
+
+
+      <footer class="site-footer">
+  <span class="owner">©2019 jlikhuva</span>
+  
+  
+  
+  
+</footer>
+
+
+    </div>
+
+  
+<script src="https://jlikhuva.github.io/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+  </body>
+</html>
