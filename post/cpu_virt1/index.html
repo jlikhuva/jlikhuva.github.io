@@ -146,15 +146,15 @@ program registers from the kernel stack and resume executing the user program.</
 
 <p>As an aside, here is a set of definitions, from <a href="http://cc.etsii.ull.es/ftp/antiguo/asignas/asignas/EC/AOA/CH17/Ch17.pdf">here</a>,  that I found quite helpful.</p>
 
-<pre><code class="language-python">    Trap = &quot;A Programmer initiated an expected 
+<pre><code class="language-python">    Trap = &quot;A Programmer initiated and expected 
             transfer of CPU control to a 
             specific handler routine&quot;
     Exception = &quot;An automatically generated Trap. It
                 is unexpected by the programmer and
                 results from some exceptional condition
                 such as an illegal memory access&quot;
-    Interrupts = &quot;Program control interruption based 
-                on hardware events external to the cpu
+    Interrupts = &quot;Program control interruption that results 
+                from hardware events external to the cpu
                 such as keyboard entries&quot;
 </code></pre>
 
