@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="jlikhuva">
+  <meta name="generator" content="Hugo 0.56.3" />
+  <title>CPU Virtualization II: Scheduling — Kleinhaus</title>
+
+  <meta name="description" content="">
+  <link rel="canonical" href="https://jlikhuva.github.io/post/cpu_virt2/">
+  <link href="" rel="alternate" type="application/rss+xml" title="Kleinhaus">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Arvo:400,700">
+  <link rel="stylesheet" href="https://jlikhuva.github.io/css/highlight.css">
+  <link rel="stylesheet" href="https://jlikhuva.github.io/css/paperback.css">
+</head>
+
+
+  <body>
+    <div class="container">
+
+      <header>
+  <h1>CPU Virtualization II: Scheduling</h1>
+
+  
+  <time datetime="2019-08-27 19:55:44 -0401 -0401">2019/08/27</time>
+  
+
+  
+</header>
+
+
+      <article>
+        
+
+<h5 id="introduction">Introduction</h5>
+
+<p>In this post, we complete our exploration of cpu virtualization by
+looking at how the OS and the processor work together to allow
+user programs to effectively and fairly share the CPU.</p>
+
+<p>As mentioned in the <a href="https://jlikhuva.github.io/post/cpu_virt1/">previous article</a>,  this post is derived from the notes I made while reading
+<a href="http://pages.cs.wisc.edu/~remzi/OSTEP/">the best OS book on the internet</a></p>
+
+<h5 id="cpu-time-sharing">CPU Time-Sharing</h5>
+
+<p>Whenever a program is being executed, the OS is not running. How then, does it facilitate cpu sharing? Well, with the help of the hardware of course. In particular, the OS uses a <code>timer</code> provided by the processor. The timer is programmed by the OS at boot time to <code>interrupt</code> the currently running process after every time period <code>t</code>. When a timer interrupt is raised, the processor stops running the current program, saves its general purpose registers onto the kernel stack and transfers control of the cpu to the OS by jumping to the address of an <code>interrupt handler</code>. This address is configured by the OS at boot time.</p>
+
+<p>Having successfully pre-empted the previous process, the OS now needs to decide which process to run next. It can keep on running the process that was just pre-empted. Or, it can decide to make a <code>context-switch</code>- replacing the former process with a new one.</p>
+
+<p><img src="https://jlikhuva.github.io/img/ctx.jpg" alt="context Switch Illustration" /></p>
+
+<p>In the event of a context switch, the OS uses <code>scheduling policies</code> in order to ecide which job to run next. Below, we explore some of them.</p>
+
+<h5 id="scheduling-i-basic-policies">Scheduling I: Basic Policies</h5>
+
+<p>How do we quantify the goodness of a scheduling policy? Here, we define some metrics that attempt to do this.</p>
+
+<pre><code class="language-python">Turnaournd Time = &quot;The time it takes for a job to
+            run to completion. It is the difference
+            between the time the job arrived 
+            into the system and the time it
+            finished running. We want this to be low&quot;
+Response time = &quot;The time that a job has to wait in
+            in line before it starts being 
+            processed. It is the difference
+            betwwen the time the job arrived 
+            into the system and the time 
+            it started running (or more
+            generally, the time it produced
+            its first output. 
+            We also want this to be low&quot;
+</code></pre>
+
+<ol>
+<li><p><strong>First In First Out (FiFo)</strong>   Simply keeps a queue of jobs to be processed
+in the order that they arrive into the system.
+Its main advantage is that it is quite simple to implement. The main downside is that since <code>time of arrival</code> is the only
+number that determines when a job gets processed, short jobs that that arrive after long running running ones will get
+blocked. This is known as the <code>convoy effect</code> and it leads to high turnaround times and high response times.</p></li>
+
+<li><p><strong>Shortest Job First (SJF)</strong>  prevents the convoy effect by processing the shorter jobs first but assumes that all jobs arrive into the system at the same time and that we know how long the jobs are going to take. Both assumptions are unrealistic but are crucial to SJF&rsquo;s functioning. Under these assumptions, SJF is an optimal scheduling algorithm. If jobs arrive at different times into the system, SJF scheduling results in the convoy problem if shorter jobs arrive after longer ones. This is mainly because SJF, and FiFo are <code>non-preemptive</code> policies. Once they start running a job, they wait for it to complete.</p></li>
+
+<li><p><strong>Shortest Time to Completion First (pSJF)</strong> is a <code>preemptive</code> version of SJF meaning that it can interrupt a running job and replace it with another. When a new job arrives, pSJF calculates the <code>time to completion (ttc)</code> for each job. It schedules the one with the  shortest ttc. pSJF is an optimal sceduling algorithm under the unreasonable assumption that we know the runtime of each job. It is also not good for response time.</p></li>
+
+<li><p><strong>Round Robin (RR)</strong> runs each job for a fixed <code>time slice</code> and then switches to the next job in the queue. Once at the end, it starts again from the front. It does this repeatedly until all jobs finish running. Because the time slice is the same for each job, RR is a <code>fair</code> scheduler. Also, the response time of jobs under RR is quite low. However, their turnaround time is high. The length of the <code>time-slice</code> is crucial. If it&rsquo;s too small we&rsquo;ll have low response time but also more context switches. If it&rsquo;s too large, response time suffers.</p></li>
+</ol>
+
+<p>The policies above have two main types of flaws:</p>
+
+<ul>
+<li>SJF and pSJF lead to great (low) turnaround time but are have poor response time and assume that we know the length of jobs</li>
+<li>RR on the other hand has great (low) response time but poor turnaround time.</li>
+</ul>
+
+<p>We&rsquo;d like to have a policy that optimizes for both Response time and Turnaround time while making no assumptions about the jobs being scheduled. We discuss that next.</p>
+
+<h5 id="scheduling-ii-the-multi-level-feedback-queue-mlfq">Scheduling II: The Multi-Level Feedback Queue (MLFQ)</h5>
+
+<p>We&rsquo;d like to develop a scheduler that <code>learns</code> from the behavior of jobs and schedules then such that interactive jobs (that spend most of their time waiting for user input) have low response time and cpu bound jobs have low turnaround time.</p>
+
+<p><strong>Multi-Level</strong>: the scheduler maintains multiple queues. Each queue has a different priority level and all jobs in a single queue have the same priority.</p>
+
+<p><strong>Feedback  Queue</strong>: the scheduler uses the jobs&rsquo; observed behavior as feedback to adjust how it schedules them. This is achieved by moving jobs from one queue to another.</p>
+
+<p>The algorithm is designed with the following goals in mind:</p>
+
+<ol>
+<li>No job should ever be starved of cpu time. Every job must get a chance to make prograss.</li>
+<li>Short jobs should be prioritized over long running ones as they are under both  SJF and pSJF.</li>
+<li>If a job changes its behavior, e.g it changes from being a long-running cpu bound job to an interactive one, the algorithm should be able to recognize this and adjust the way such a job is scheduled.</li>
+<li>A job should not be able to game the scheduling policy in order to gain more cpu time.</li>
+</ol>
+
+<p>With these goals in mind, the MLFQ procedure is thus:</p>
+
+<ol>
+<li><p>Given 2 jobs A &amp; B: Always run the one in the higher priority level. If they are both at the same level, we use round robin to schedule them.</p>
+
+<pre><code class="language-python">if A.prioity() &gt; B.priority():
+    run(A) # B is not running
+else if A.priority() == B.priority():
+    round_robin_run(A, B) # Run both
+else:
+    run(B) # A is not running
+</code></pre></li>
+
+<li><p>When a job enters the system, it&rsquo;s placed in the topmost queue i.e has highest priority. This assumes that the process is a short one and should that be prioritized. If this turns out to be false, then the next rule will work to ensure that the job is transferred to the appropriate priority level.</p></li>
+
+<li><p>Once a job uses up its alloted time (remember, we are round robin within a single queue), regardless of how many times it gives up the cpu, its priority is reduced and the job is moved to a lower queue.</p></li>
+
+<li><p>After some time period <code>S</code>, all the jobs in the system are moved to the highest priority queue. This is referred to as <code>priority boosting</code> and it&rsquo;s done to keep cpu bound jobs from starving when many I/O bound jobs are present. It&rsquo;s also a way of placing jobs whose behavior may have changed in the appropriate queues.</p></li>
+</ol>
+
+<p>Here is an illustration of MLFQ.</p>
+
+<p><img src="https://jlikhuva.github.io/img/mlfq.jpg" alt="MLFQ Illustration" /></p>
+
+<h5 id="scheduling-iii-proportional-share">Scheduling III: Proportional Share</h5>
+
+<p>Unlike the simple policies and MLFQ, which seek to optimize response time and turnaround time, other policies strive to ensure that each job gets a percentage of cpu time <code>proportiopnal</code> to its <code>need</code>. A job&rsquo;s <code>need</code> for cpu time is codified in different ways such as with <code>tickets</code>.</p>
+
+<p>Below, we discuss some of these policies.</p>
+
+<p><strong>Lottery Scheduling</strong>: Under this policy, each job is assigned some number of tickets. To determine which process gets to run next, the scheduler holds a lottery after the timer interrupt interrupts the currently running job. The lottery simply involves choosing a random ticket from the universe of all currently available tickets. This procedure ensures that the amount of cpu time a job will get will be proportional to the number of tickets it holds.</p>
+
+<p>Below is a sketch of the procedure.</p>
+
+<pre><code class="language-cpp">    struct proc {
+        // ...snip
+        int num_tickets
+        // ...snip
+    } proc_t;
+
+    proc_list: [proc_t] = [
+        // A vector holding the 
+        // jobs ready for scheduling.
+        // A job holds a contiguous block of tickets.
+        // i.e if the first ticket a job has is 30
+        // and it has 10 tickets, then that 
+        // job will hold tickets # 31 .... 39
+        // Jobs in this list are sorted by the 
+        // largest ticket they hold.
+    ]
+
+    proc_t lottery_sched_impl(proc_list, N) {
+        // Randomly select a ticket number from the
+        // universe of all tickets
+        winning_num = random.randn(0, N)
+
+        // Then figure out which job
+        // is holding that ticket.
+        // This is O(number of jobs in queue)
+        cur_ticket_pos = 0
+        for (i = 0; i &lt; proc_list.size(); i++&gt;) {
+            cur_ticket_pos += proc_list[i].num_tickets
+            if winning_num &lt; cur_ticket_pos {
+                return proc_list[i]
+            }
+        }
+    }
+</code></pre>
+
+<p>This scheme is quite simple to implement. Furthermore, since there&rsquo;s no global state, other than the total number of tickets, it&rsquo;s very easy to add new jobs into the system. The new job simply gets assigned however many tickets it needs and the total number of tickets is increased accordingly. However, ticket assignment is still an open problem.</p>
+
+<p><strong>Stride Scheduling</strong> resulted from an effort to make Lottery Scheduling deterministic. Each job still has a number of tickets. However, when picking which job to run next, we do not hold a lottery. We instead choose the job with the lowest <code>pass value</code>. This is a variable derived from the job&rsquo;s <code>stride</code> which is in turn derived from the numbe of tickets the job has.</p>
+
+<p>Here&rsquo;s how this all fits together:</p>
+
+<p><img src="https://jlikhuva.github.io/img/stride.jpg" alt="Stride Sched" /></p>
+
+<p>If two jobs have the same pass value, then one of them is picked arbitrarily.</p>
+
+<p>The downside of this scheme is that it&rsquo;s harder to incorporate new jobs once other jobs have been running for a while. In particular, it&rsquo;s not clear how to best assign the new process&rsquo; <code>pass value</code> such that the algorithm remains fair.</p>
+
+<h5 id="outro">Outro</h5>
+
+<p>This concludes our discussion of cpu virtualization. In the first post we discussed how the OS achieves program isolation and control. This post explored how it is able to orchestrate cpu time sharing. I had planned to include linux&rsquo;s completely fair scheduler(cfs) as part of this discussion but decided against it because it deserves an independent post.</p>
+
+      </article>
+
+      <nav class="site-nav">
+  <a href="https://jlikhuva.github.io/">Home</a>
+  <a href="https://jlikhuva.github.io/post/">All posts</a>
+
+  
+
+  
+  <a href="https://github.com/jlikhuva">GitHub</a>
+
+  
+  <a href="https://www.linkedin.com/in/jlikhuva">LinkedIn</a>
+</nav>
+
+
+      <footer class="site-footer">
+  <span class="owner">©2019 jlikhuva</span>
+  
+  
+  
+  
+</footer>
+
+
+    </div>
+
+  
+<script src="https://jlikhuva.github.io/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+  </body>
+</html>
