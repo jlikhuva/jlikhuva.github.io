@@ -175,7 +175,7 @@ else:
         // is holding that ticket.
         // This is O(number of jobs in queue)
         cur_ticket_pos = 0
-        for (i = 0; i &lt; proc_list.size(); i++&gt;) {
+        for (i = 0; i &lt; proc_list.size(); i++) {
             cur_ticket_pos += proc_list[i].num_tickets
             if winning_num &lt; cur_ticket_pos {
                 return proc_list[i]
