@@ -100,7 +100,7 @@ registers ( e.g the program counter aka the PC),
 lists of resources the program is holding (e.g the list of open files), etc</p>
 
 <p>To run a program, the OS first creates a new process and
-initializes its address space (covered in a later post on memory virtualization), loads its code
+initializes its address space – the process&rsquo; private view of main memory, loads its code
 and static data from disk into that address space,
 then allocates memory for the program&rsquo;s stack, kernel stack,<br />
 and heap. The stack is initialized with initial variables i.e <code>argc</code> and <code>argv</code>.
