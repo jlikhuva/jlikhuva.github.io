@@ -102,7 +102,7 @@ lists of resources the program is holding (e.g the list of open files), etc</p>
 <p>To run a program, the OS first creates a new process and
 initializes its address space (covered in a later post on memory virtualization), loads its code
 and static data from disk into that address space,
-then allocates memory for the program&rsquo;s stack
+then allocates memory for the program&rsquo;s stack, kernel stack,<br />
 and heap. The stack is initialized with initial variables i.e <code>argc</code> and <code>argv</code>.
 Additionally, the OS initializes the list of open
 file descriptors with <code>stdin</code>, <code>stdout</code> and <code>stderr</code>.
@@ -134,12 +134,12 @@ The processor runs in two modes: <code>user mode</code> and <code>kernel mode</c
 <li>The program executes a special instruction
 (<code>INT</code> on x86) that changes the processor mode to kernel
 mode, stops the user program, saves the calling program&rsquo;s
-registers (on the kernel stack) and transfers
+registers (on the process&rsquo; kernel stack) and transfers
 control of the cpu to the OS.</li>
 <li>Once the OS is running, it can execute the restricted instruction
 on behalf of the initiating user program. When its done, it executes another
 special instruction (<code>IRET</code>) that makes the processor switch back to user mode, restore the user
-program registers from the kernel stack and resume executing the user program.</li>
+program registers from its kernel stack and resume executing the user program.</li>
 </ol>
 
 <p>At boot time, the OS initializes a <code>trap table</code>. This is a list of kernel space memory addresses that the processor uses in order to know where in the cpu to jump to when a given syscall is made.</p>

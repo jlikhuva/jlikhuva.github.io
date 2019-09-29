@@ -47,7 +47,7 @@ user programs to effectively and fairly share the CPU.</p>
 
 <h5 id="cpu-time-sharing">CPU Time-Sharing</h5>
 
-<p>Whenever a program is being executed, the OS is not running. How then, does it facilitate cpu sharing? Well, with the help of the hardware of course. In particular, the OS uses a <code>timer</code> provided by the processor. The timer is programmed by the OS at boot time to <code>interrupt</code> the currently running process after every time period <code>t</code>. When a timer interrupt is raised, the processor stops running the current program, saves its general purpose registers onto the kernel stack and transfers control of the cpu to the OS by jumping to the address of an <code>interrupt handler</code>. This address is configured by the OS at boot time.</p>
+<p>Whenever a program is being executed, the OS is not running. How then, does it facilitate cpu sharing? Well, with the help of the hardware of course. In particular, the OS uses a <code>timer</code> provided by the processor. The timer is programmed by the OS at boot time to <code>interrupt</code> the currently running process after every time period <code>t</code>. When a timer interrupt is raised, the processor stops running the current program, saves its general purpose registers in the process&rsquo; kernel stack and transfers control of the cpu to the OS by jumping to the address of an <code>interrupt handler</code>. This address is configured by the OS at boot time.</p>
 
 <p>Having successfully pre-empted the previous process, the OS now needs to decide which process to run next. It can keep on running the process that was just pre-empted. Or, it can decide to make a <code>context-switch</code>- replacing the former process with a new one.</p>
 
