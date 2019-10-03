@@ -28,9 +28,9 @@ CPU Time-Sharing Whenever a program is being executed, the OS is not running.</d
       <pubDate>Tue, 27 Aug 2019 19:55:44 -0400</pubDate>
       
       <guid>https://jlikhuva.github.io/post/cpu_virt1/</guid>
-      <description>Introduction In this post, we introduce resource virtualization and explore how the operating system uses this idea to give programs fair and efficient access to one of computing&amp;rsquo;s main resource: the CPU. In future posts, we&amp;rsquo;ll examine how virtualization works with other resources such as RAM and Persistent Storage.
+      <description>Introduction In this post, we introduce resource virtualization and explore how the operating system uses this idea to give programs fair and efficient access to one of computing&amp;rsquo;s main resource: the CPU. In future posts, we&amp;rsquo;ll examine how other resources, such as RAM and Disks, are virtualized.
 This post is derived from the notes I made while reading the best OS book on the internet.
-What is Resource Virtualization?</description>
+What is Resource Virtualization? Virtualization refers to the separation of the abstract view of computing resources (compute, storage, memory) from the underlying implementations.</description>
     </item>
     
     <item>
