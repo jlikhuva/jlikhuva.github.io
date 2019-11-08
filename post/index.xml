@@ -33,15 +33,5 @@ This post is derived from the notes I made while reading the best OS book on the
 What is Resource Virtualization? Virtualization refers to the separation of the abstract view of computing resources (compute, storage, memory) from the underlying implementations.</description>
     </item>
     
-    <item>
-      <title>Good Morning ...</title>
-      <link>https://jlikhuva.github.io/post/intro/</link>
-      <pubDate>Mon, 19 Aug 2019 16:02:07 -0400</pubDate>
-      
-      <guid>https://jlikhuva.github.io/post/intro/</guid>
-      <description>Hello there; thank you for stopping by. In this post, I intend to answer the question, &amp;ldquo;What is this, and why does it exist?&amp;rdquo;
-I&amp;rsquo;m setting up this blog as a space for me to &amp;ldquo;learn in public&amp;rdquo;. I intend for it to serve as a quasi-journal into which I distill the different things that I&amp;rsquo;ll be learning, working on, and thinking about. I expect the focus of the posts to be on two main areas: Programming and product.</description>
-    </item>
-    
   </channel>
 </rss>
