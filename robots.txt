@@ -1,0 +1,4 @@
+Sitemap: https://github.com/jlikhuva/blog/sitemap.xml
+
+User-agent: *
+Disallow:
